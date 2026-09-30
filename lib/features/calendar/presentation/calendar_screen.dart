@@ -68,182 +68,203 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         groupsValue.value ?? const <DateTime, List<TaskWithChecklist>>{};
     final selectedTasks =
         groups[normalizeLocalDate(_selectedDay)] ?? const <TaskWithChecklist>[];
+    final calendar = Card(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(8, 8, 8, 12),
+        child: Column(
+          children: [
+            Column(
+              children: [
+                Row(
+                  children: [
+                    IconButton(
+                      tooltip: 'Previous month',
+                      onPressed: () => _goToMonth(-1),
+                      icon: const Icon(Icons.chevron_left),
+                    ),
+                    Expanded(
+                      child: Text(
+                        DateFormat('MMMM y').format(_focusedDay),
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: 'Next month',
+                      onPressed: () => _goToMonth(1),
+                      icon: const Icon(Icons.chevron_right),
+                    ),
+                  ],
+                ),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: _today,
+                    child: const Text('Today'),
+                  ),
+                ),
+              ],
+            ),
+            TableCalendar<TaskWithChecklist>(
+              firstDay: _firstDay,
+              lastDay: _lastDay,
+              focusedDay: _focusedDay,
+              calendarFormat: CalendarFormat.month,
+              headerVisible: false,
+              rowHeight:
+                  52 *
+                  MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.5),
+              daysOfWeekHeight: 28 * MediaQuery.textScalerOf(context).scale(1),
+
+              availableCalendarFormats: const {CalendarFormat.month: 'Month'},
+              selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+              eventLoader: (day) => groups[normalizeLocalDate(day)] ?? const [],
+              onDaySelected: (selectedDay, focusedDay) => setState(() {
+                _selectedDay = normalizeLocalDate(selectedDay);
+                _focusedDay = focusedDay;
+              }),
+              onPageChanged: (focusedDay) =>
+                  setState(() => _focusedDay = focusedDay),
+              daysOfWeekStyle: const DaysOfWeekStyle(
+                weekdayStyle: TextStyle(
+                  color: AppColors.deepPlum,
+                  fontWeight: FontWeight.w600,
+                ),
+                weekendStyle: TextStyle(
+                  color: AppColors.crimson,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              calendarStyle: const CalendarStyle(
+                cellMargin: EdgeInsets.all(6),
+
+                outsideTextStyle: TextStyle(color: AppColors.mutedText),
+                weekendTextStyle: TextStyle(color: AppColors.crimson),
+                todayDecoration: BoxDecoration(
+                  color: AppColors.terracotta,
+                  shape: BoxShape.circle,
+                ),
+                todayTextStyle: TextStyle(
+                  color: AppColors.darkText,
+                  fontWeight: FontWeight.w700,
+                ),
+                selectedDecoration: BoxDecoration(
+                  color: AppColors.deepPlum,
+                  shape: BoxShape.circle,
+                ),
+                selectedTextStyle: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                ),
+                defaultTextStyle: TextStyle(color: AppColors.darkText),
+                markersMaxCount: 1,
+              ),
+              calendarBuilders: CalendarBuilders(
+                markerBuilder: (context, day, events) {
+                  if (events.isEmpty) return null;
+                  return Positioned(
+                    right: 2,
+                    bottom: 1,
+                    child: Semantics(
+                      label:
+                          '${events.length} ${events.length == 1 ? 'task' : 'tasks'} due',
+                      child: Container(
+                        key: ValueKey(
+                          'calendar-marker-${day.year}-${day.month}-${day.day}',
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 18,
+                          minHeight: 18,
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        decoration: BoxDecoration(
+                          color: events.every((event) => event.task.isCompleted)
+                              ? AppColors.outline
+                              : AppColors.crimson,
+                          borderRadius: BorderRadius.circular(9),
+                          border: Border.all(color: AppColors.paleCream),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          '${events.length}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    final agenda = <Widget>[
+      SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.only(top: 8, bottom: 16),
+          child: Text(
+            _selectedHeading(_selectedDay),
+            key: const Key('selected-date-heading'),
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+        ),
+      ),
+      ..._taskSlivers(groupsValue, selectedTasks),
+      const SliverPadding(padding: EdgeInsets.only(bottom: 96)),
+    ];
     return Scaffold(
       appBar: AppBar(title: const Text('Calendar')),
       body: SafeArea(
         top: false,
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 820),
-            child: CustomScrollView(
-              key: const PageStorageKey('calendar-scroll'),
-              slivers: [
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 0),
-                  sliver: SliverToBoxAdapter(
-                    child: Card(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(8, 8, 8, 12),
-                        child: Column(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final wide =
+                constraints.maxWidth >= 960 &&
+                MediaQuery.textScalerOf(context).scale(1) <= 1.3;
+            return Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: wide ? 1200 : 720),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: constraints.maxWidth < 600 ? 16 : 24,
+                  ),
+                  child: wide
+                      ? Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              children: [
-                                IconButton(
-                                  tooltip: 'Previous month',
-                                  onPressed: () => _goToMonth(-1),
-                                  icon: const Icon(Icons.chevron_left),
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    DateFormat('MMMM y').format(_focusedDay),
-                                    textAlign: TextAlign.center,
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.titleLarge,
-                                  ),
-                                ),
-                                TextButton(
-                                  onPressed: _today,
-                                  child: const Text('Today'),
-                                ),
-                                IconButton(
-                                  tooltip: 'Next month',
-                                  onPressed: () => _goToMonth(1),
-                                  icon: const Icon(Icons.chevron_right),
-                                ),
-                              ],
+                            Expanded(
+                              flex: 6,
+                              child: SingleChildScrollView(
+                                padding: const EdgeInsets.only(bottom: 24),
+                                child: calendar,
+                              ),
                             ),
-                            TableCalendar<TaskWithChecklist>(
-                              firstDay: _firstDay,
-                              lastDay: _lastDay,
-                              focusedDay: _focusedDay,
-                              calendarFormat: CalendarFormat.month,
-                              headerVisible: false,
-                              availableCalendarFormats: const {
-                                CalendarFormat.month: 'Month',
-                              },
-                              selectedDayPredicate: (day) =>
-                                  isSameDay(_selectedDay, day),
-                              eventLoader: (day) =>
-                                  groups[normalizeLocalDate(day)] ?? const [],
-                              onDaySelected: (selectedDay, focusedDay) =>
-                                  setState(() {
-                                    _selectedDay = normalizeLocalDate(
-                                      selectedDay,
-                                    );
-                                    _focusedDay = focusedDay;
-                                  }),
-                              onPageChanged: (focusedDay) =>
-                                  setState(() => _focusedDay = focusedDay),
-                              daysOfWeekStyle: const DaysOfWeekStyle(
-                                weekdayStyle: TextStyle(
-                                  color: AppColors.deepPlum,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                                weekendStyle: TextStyle(
-                                  color: AppColors.crimson,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              calendarStyle: const CalendarStyle(
-                                outsideTextStyle: TextStyle(
-                                  color: AppColors.outline,
-                                ),
-                                weekendTextStyle: TextStyle(
-                                  color: AppColors.crimson,
-                                ),
-                                todayDecoration: BoxDecoration(
-                                  color: AppColors.terracotta,
-                                  shape: BoxShape.circle,
-                                ),
-                                todayTextStyle: TextStyle(
-                                  color: AppColors.darkText,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                                selectedDecoration: BoxDecoration(
-                                  color: AppColors.deepPlum,
-                                  shape: BoxShape.circle,
-                                ),
-                                selectedTextStyle: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                                defaultTextStyle: TextStyle(
-                                  color: AppColors.darkText,
-                                ),
-                                markersMaxCount: 1,
-                              ),
-                              calendarBuilders: CalendarBuilders(
-                                markerBuilder: (context, day, events) {
-                                  if (events.isEmpty) return null;
-                                  return Positioned(
-                                    right: 2,
-                                    bottom: 1,
-                                    child: Semantics(
-                                      label:
-                                          '${events.length} ${events.length == 1 ? 'task' : 'tasks'} due',
-                                      child: Container(
-                                        key: ValueKey(
-                                          'calendar-marker-${day.year}-${day.month}-${day.day}',
-                                        ),
-                                        constraints: const BoxConstraints(
-                                          minWidth: 18,
-                                          minHeight: 18,
-                                        ),
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 4,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color:
-                                              events.every(
-                                                (event) =>
-                                                    event.task.isCompleted,
-                                              )
-                                              ? AppColors.outline
-                                              : AppColors.crimson,
-                                          borderRadius: BorderRadius.circular(
-                                            9,
-                                          ),
-                                          border: Border.all(
-                                            color: AppColors.paleCream,
-                                          ),
-                                        ),
-                                        alignment: Alignment.center,
-                                        child: Text(
-                                          '${events.length}',
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w700,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                },
+                            const SizedBox(width: 24),
+                            Expanded(
+                              flex: 5,
+                              child: CustomScrollView(
+                                key: const PageStorageKey('calendar-agenda'),
+                                slivers: agenda,
                               ),
                             ),
                           ],
+                        )
+                      : CustomScrollView(
+                          key: const PageStorageKey('calendar-scroll'),
+                          slivers: [
+                            SliverToBoxAdapter(child: calendar),
+                            ...agenda,
+                          ],
                         ),
-                      ),
-                    ),
-                  ),
                 ),
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-                  sliver: SliverToBoxAdapter(
-                    child: Text(
-                      _selectedHeading(_selectedDay),
-                      key: const Key('selected-date-heading'),
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                  ),
-                ),
-                ..._taskSlivers(groupsValue, selectedTasks),
-                const SliverPadding(padding: EdgeInsets.only(bottom: 96)),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
       ),
       floatingActionButton: FloatingActionButton(
@@ -288,20 +309,32 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         return [
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              child: Column(
-                children: [
-                  Text(
-                    message,
-                    style: const TextStyle(color: AppColors.mutedText),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    children: [
+                      const Icon(
+                        Icons.event_available_outlined,
+                        size: 32,
+                        color: AppColors.deepPlum,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        message,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: AppColors.mutedText),
+                      ),
+                      const SizedBox(height: 8),
+                      OutlinedButton.icon(
+                        onPressed: _addTask,
+                        icon: const Icon(Icons.add),
+                        label: const Text('Add task'),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                  OutlinedButton.icon(
-                    onPressed: _addTask,
-                    icon: const Icon(Icons.add),
-                    label: const Text('Add task'),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
@@ -309,7 +342,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       }
       return [
         SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          padding: EdgeInsets.zero,
           sliver: SliverList.builder(
             itemCount: selectedTasks.length,
             itemBuilder: (context, index) =>

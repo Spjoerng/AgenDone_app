@@ -1,3 +1,4 @@
+import '../../../core/widgets/empty_state_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -75,15 +76,15 @@ class _TaskBoardScreenState extends ConsumerState<TaskBoardScreen> {
                                 context,
                               ).scale(1);
                               final columns =
-                                  constraints.maxWidth < 420 || scale > 1.3
+                                  constraints.maxWidth < 600 || scale > 1.3
                                   ? 1
-                                  : constraints.maxWidth < 750
+                                  : constraints.maxWidth < 900
                                   ? 2
                                   : 3;
                               final tileWidth =
                                   (constraints.maxWidth -
                                       48 -
-                                      (columns - 1) * 8) /
+                                      (columns - 1) * 16) /
                                   columns;
                               return SingleChildScrollView(
                                 key: const PageStorageKey('task-board'),
@@ -94,8 +95,8 @@ class _TaskBoardScreenState extends ConsumerState<TaskBoardScreen> {
                                   96,
                                 ),
                                 child: Wrap(
-                                  spacing: 8,
-                                  runSpacing: 8,
+                                  spacing: 16,
+                                  runSpacing: 4,
                                   children: items.map((item) {
                                     return SizedBox(
                                       width: tileWidth,
@@ -155,30 +156,24 @@ class _EmptyTasks extends StatelessWidget {
       TaskFilter.completed => 'No completed tasks',
     };
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.task_alt, size: 48),
-            const SizedBox(height: 12),
-            Text(title, style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 8),
-            Text(
-              filter == TaskFilter.completed
-                  ? 'Completed tasks will collect here.'
-                  : 'Create a task to get started.',
-              textAlign: TextAlign.center,
-            ),
-            if (filter != TaskFilter.completed) ...[
-              const SizedBox(height: 12),
-              OutlinedButton.icon(
-                onPressed: onAdd,
-                icon: const Icon(Icons.add),
-                label: const Text('Add task'),
-              ),
-            ],
-          ],
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 96),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 480),
+          child: EmptyStateCard(
+            icon: Icons.task_alt,
+            title: title,
+            message: filter == TaskFilter.completed
+                ? 'Completed tasks will collect here.'
+                : 'Create a task to get started.',
+            action: filter == TaskFilter.completed
+                ? null
+                : OutlinedButton.icon(
+                    onPressed: onAdd,
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add task'),
+                  ),
+          ),
         ),
       ),
     );

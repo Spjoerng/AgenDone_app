@@ -1,3 +1,4 @@
+import '../../../core/widgets/color_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
@@ -173,7 +174,7 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
       top: false,
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 700),
+          constraints: const BoxConstraints(maxWidth: 680),
           child: Form(
             key: _key,
             child: CustomScrollView(
@@ -185,7 +186,7 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
                     children: [
                       TextFormField(
                         controller: _title,
-                        autofocus: widget.existing == null,
+                        textInputAction: TextInputAction.next,
                         decoration: const InputDecoration(labelText: 'Title'),
                         validator: (value) =>
                             value == null || value.trim().isEmpty
@@ -254,36 +255,11 @@ class _TaskFormScreenState extends ConsumerState<TaskFormScreen> {
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 12,
-                        children: TaskColors.values
-                            .map(
-                              (color) => Semantics(
-                                label: 'Select task color',
-                                selected: _color == color.toARGB32(),
-                                child: InkWell(
-                                  onTap: () =>
-                                      setState(() => _color = color.toARGB32()),
-                                  child: Container(
-                                    width: 48,
-                                    height: 48,
-                                    decoration: BoxDecoration(
-                                      color: color,
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color: _color == color.toARGB32()
-                                            ? Theme.of(
-                                                context,
-                                              ).colorScheme.onSurface
-                                            : Colors.transparent,
-                                        width: 3,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            )
-                            .toList(),
+                      ColorSelector(
+                        colors: TaskColors.values,
+                        value: _color,
+                        label: 'Select task color',
+                        onChanged: (color) => setState(() => _color = color),
                       ),
                       const SizedBox(height: 20),
                       Row(

@@ -1,3 +1,4 @@
+import '../../../core/widgets/empty_state_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -55,6 +56,8 @@ class _ScheduleScreenState extends ConsumerState<ScheduleScreen> {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(24, 4, 24, 16),
                   child: SegmentedButton<ScheduleViewMode>(
+                    expandedInsets: EdgeInsets.zero,
+                    showSelectedIcon: false,
                     segments: const [
                       ButtonSegment(
                         value: ScheduleViewMode.day,
@@ -250,29 +253,20 @@ class _EmptyDay extends StatelessWidget {
   final VoidCallback onAdd;
   @override
   Widget build(BuildContext context) => Center(
-    child: Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.event_available, size: 48),
-          const SizedBox(height: 12),
-          Text(
-            'Your $day is clear.',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Tap + to add your first schedule entry.',
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          OutlinedButton.icon(
+    child: SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 96),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 480),
+        child: EmptyStateCard(
+          icon: Icons.event_available,
+          title: 'Your $day is clear.',
+          message: 'Tap + to add your first schedule entry.',
+          action: OutlinedButton.icon(
             onPressed: onAdd,
             icon: const Icon(Icons.add),
             label: const Text('Add entry'),
           ),
-        ],
+        ),
       ),
     ),
   );

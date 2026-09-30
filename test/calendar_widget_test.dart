@@ -89,10 +89,15 @@ void main() {
     await repository.create(
       TaskFormData(
         title: 'Late',
-        deadline: now.subtract(const Duration(hours: 1)),
+        deadline: DateTime(now.year, now.month, now.day),
       ),
     );
     await pumpCalendar(tester);
+    await tester.drag(
+      find.byKey(const Key('selected-date-heading')),
+      const Offset(0, -300),
+    );
+    await tester.pumpAndSettle();
     expect(find.text('Completed'), findsOneWidget);
     expect(find.text('Overdue'), findsOneWidget);
     await dispose(tester);

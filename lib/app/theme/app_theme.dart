@@ -9,11 +9,16 @@ abstract final class AppTheme {
       onPrimary: Colors.white,
       secondary: AppColors.terracotta,
       onSecondary: AppColors.darkText,
-      surface: AppColors.warmCream,
+      surface: AppColors.ivory,
+      surfaceContainerLow: AppColors.paleCream,
+      surfaceContainerHighest: AppColors.warmCream,
+      primaryContainer: AppColors.roseMist,
+      onPrimaryContainer: AppColors.deepPlum,
       onSurface: AppColors.darkText,
       error: AppColors.danger,
       onError: Colors.white,
       outline: AppColors.outline,
+      outlineVariant: AppColors.softBorder,
     );
     const textTheme = TextTheme(
       headlineSmall: TextStyle(
@@ -22,7 +27,7 @@ abstract final class AppTheme {
         color: AppColors.deepPlum,
       ),
       titleLarge: TextStyle(
-        fontSize: 21,
+        fontSize: 20,
         fontWeight: FontWeight.w700,
         color: AppColors.deepPlum,
       ),
@@ -56,16 +61,21 @@ abstract final class AppTheme {
         backgroundColor: AppColors.paleCream,
         foregroundColor: AppColors.deepPlum,
         elevation: 0,
+        scrolledUnderElevation: 0,
+        toolbarHeight: 72,
+        titleSpacing: 20,
         centerTitle: false,
         titleTextStyle: TextStyle(
-          fontSize: 28,
+          fontSize: 26,
           fontWeight: FontWeight.w700,
           color: AppColors.deepPlum,
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: AppColors.warmCream,
-        indicatorColor: AppColors.terracotta.withValues(alpha: .32),
+        height: 72,
+        elevation: 0,
+        backgroundColor: AppColors.ivory,
+        indicatorColor: AppColors.warmCream,
         labelTextStyle: WidgetStateProperty.resolveWith(
           (states) => TextStyle(
             color: states.contains(WidgetState.selected)
@@ -85,18 +95,24 @@ abstract final class AppTheme {
         ),
       ),
       cardTheme: CardThemeData(
-        color: AppColors.warmCream,
-        elevation: 1,
+        color: AppColors.ivory,
+        elevation: 0,
+        clipBehavior: Clip.antiAlias,
+        margin: const EdgeInsets.only(bottom: 12),
         shadowColor: AppColors.deepPlum.withValues(alpha: .12),
-        shape: roundedShape,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: AppColors.softBorder),
+        ),
       ),
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
         backgroundColor: AppColors.crimson,
         foregroundColor: Colors.white,
-        elevation: 3,
+        elevation: 2,
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
+          minimumSize: const Size(48, 48),
           backgroundColor: AppColors.crimson,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
@@ -117,7 +133,11 @@ abstract final class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.warmCream,
+        fillColor: AppColors.ivory,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 18,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppColors.outline),
@@ -158,11 +178,40 @@ abstract final class AppTheme {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
       chipTheme: ChipThemeData(
-        backgroundColor: AppColors.warmCream,
-        selectedColor: AppColors.terracotta.withValues(alpha: .38),
+        backgroundColor: AppColors.ivory,
+        selectedColor: AppColors.warmCream,
         side: const BorderSide(color: AppColors.outline),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      ),
+      navigationRailTheme: const NavigationRailThemeData(
+        backgroundColor: AppColors.ivory,
+        indicatorColor: AppColors.warmCream,
+        selectedIconTheme: IconThemeData(color: AppColors.deepPlum),
+        unselectedIconTheme: IconThemeData(color: AppColors.mutedText),
+        selectedLabelTextStyle: TextStyle(
+          color: AppColors.deepPlum,
+          fontWeight: FontWeight.w700,
+        ),
+        unselectedLabelTextStyle: TextStyle(color: AppColors.mutedText),
+      ),
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: ButtonStyle(
+          minimumSize: const WidgetStatePropertyAll(Size(48, 48)),
+          side: const WidgetStatePropertyAll(
+            BorderSide(color: AppColors.softBorder),
+          ),
+          backgroundColor: WidgetStateProperty.resolveWith(
+            (states) => states.contains(WidgetState.selected)
+                ? AppColors.deepPlum
+                : AppColors.ivory,
+          ),
+          foregroundColor: WidgetStateProperty.resolveWith(
+            (states) => states.contains(WidgetState.selected)
+                ? Colors.white
+                : AppColors.deepPlum,
+          ),
+        ),
       ),
     );
   }
